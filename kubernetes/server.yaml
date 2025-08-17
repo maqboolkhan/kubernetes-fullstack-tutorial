@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-serv
+spec:
+  ports:
+  - name: 8000-8000
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: server-depl # connection to deployment
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: server-depl
+  name: server-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server-depl
+  template:
+    metadata:
+      labels:
+        app: server-depl
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - image: simpei-api:latest
+        imagePullPolicy: IfNotPresent
+        name: simpei-api
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        volumeMounts:
+        - name: data-volume
+          mountPath: app/data
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: server-depl-pvc

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  simpei-api:
+    build: ./simpei
+    image: simpei-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data directory for SQLite database persistence
+      - ./simpei/data:/app/data
+    environment:
+      - SQLALCHEMY_DATABASE_URL=sqlite:///./data/todos.db
+    restart: unless-stopped
+    networks:
+      - simpei-network
+
+  simpei-ui:
+    build: 
+      context: ./simpei-ui
+      args:
+        # Use /api for relative API calls, nginx will proxy to backend
+        - VUE_APP_API_URL=/api
+    image: simpei-ui
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_HOST=simpei-api
+      - BACKEND_PORT=8000
+    depends_on:
+      - simpei-api
+    restart: unless-stopped
+    networks:
+      - simpei-network
+
+networks:
+  simpei-network:
+    driver: bridge

@@ -1,0 +1,27 @@
+replicas: 1
+image:
+  ui:
+    name: simpei-ui:latest
+  server:
+    name: simpei-api:latest
+  pullPolicy: IfNotPresent
+ports: 
+  ui:
+    source: 3000
+    target: 3000
+  server:
+    source: 8000
+    target: 8000
+ingress:
+  host: todo.local
+  className: nginx
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  mountPath: /app/data
+security:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000

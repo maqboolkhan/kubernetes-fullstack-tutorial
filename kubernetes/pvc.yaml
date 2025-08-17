@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: server-depl-pvc
+  labels:
+    app: server-depl
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "standard"
+  resources:
+    requests:
+      storage: 1Gi

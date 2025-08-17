@@ -1,0 +1,5 @@
+.vscode
+.DS_Store
+.venv
+simpei/data
+simpei-ui/node_modules
