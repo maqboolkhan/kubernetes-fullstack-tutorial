@@ -1,10 +1,12 @@
-# Simpei Todo Application
+# Simpei Todo Application 
 
-A full-stack todo application with Vue.js frontend, FastAPI backend and SQLite as database, designed for learning and easy understanding of deployment using **Kubernetes** with or without **Helm** and also using Docker Compose. Hence, I did not care about code quality of both projects. I just made sure it works!
+This repository demonstrates how to deploy a full-stack Todo application with a Vue.js frontend, a FastAPI backend, and an SQLite database. The project is designed for learning purposes, with the goal of making Kubernetes deployment easy to understand. It includes examples of deployment using Kubernetes, both with and without Helm, as well as using Docker Compose.
 
-Before you start learning Kuberenetes, I assume you are familiar with Docker. This README is intensive but only explain much! This repository is not about explaining you all the `kubectl` commands or how to debug, it is more about how to deploy your fullstack app using Kubernetes. In order to learn Kubernetes properly, checkout [Techworld with Nana](https://www.youtube.com/@TechWorldwithNana) or Linkedin Learning [courses](https://www.linkedin.com/learning/search?keywords=kubernetes&promptType=LEARNER_TYPED).
+I created this project because, while it is relatively easy to find resources for learning Kubernetes itself, I could not find a clear tutorial that shows how to deploy a full-stack application with custom docker images and persistent data. This repository aims to fill that gap and provide a practical example that learners can follow.
 
- I used `Claude Sonnet 4.0` and [Kiro](https://kiro.dev) to generate both UI and API projects as I wanted to focus on Kubernetes part of this project. Once, both projects were generated I did Kubernetes part myself. You can find README files in both projects, however they were generated with `Claude` too!
+Before diving in, I assume you are already familiar with Docker and have basic overview of Kubernetes. This README is intensive but only explains much! This repository is not about explaining all the `kubectl` commands or how to debug, it is more about how to deploy your fullstack app using Kubernetes. In order to learn Kubernetes properly, checkout [Techworld with Nana](https://www.youtube.com/@TechWorldwithNana) or Linkedin Learning [courses](https://www.linkedin.com/learning/search?keywords=kubernetes).
+
+ I used `Claude Sonnet 4.0` and [Kiro](https://kiro.dev) to generate both UI and API projects as I wanted to focus on Kubernetes part of this project. You can find README files in both projects, however they were generated with `Claude` too. Once both projects were generated, I did the Kubernetes part myself.
 
 ## Table of Contents
 
@@ -45,7 +47,7 @@ Before you start learning Kuberenetes, I assume you are familiar with Docker. Th
 
 ## Prerequisites
 
-Please first make sure you have following tools installed in your machine.
+Please first make sure you have the following tools installed on your machine.
 
 ### For Docker setup
 - [Docker](https://docker.com)
@@ -65,13 +67,13 @@ Please first make sure you have following tools installed in your machine.
 
 ### Using Docker Compose
 
-It is quickest way to try this project. You only need to have `Docker` installed and make sure docker is running and simply run.
+It is the quickest way to try this project. You only need to have `Docker` installed and make sure docker is running and simply run.
 
 ```bash
 docker-compose up -d
 ```
 
-Visit http://localhost:3000 to visit to the Simpei app. 
+Visit http://localhost:3000 to access the Simpei app. 
 
 To stop the application, run
 
@@ -81,11 +83,11 @@ docker-compose down
 
 ## Kubernetes Configuration Overview
 
-It is fun time now. Before getting our hands dirty, lets first understand all the Kubernetes yaml files. The `kubernetes/` directory contains essential YAML files for deploying the application. Each file serves a specific purpose in the overall architecture.
+It is fun time now. Before getting our hands dirty, let's first understand all the Kubernetes yaml files. The `kubernetes/` directory contains essential YAML files for deploying the application. Each file serves a specific purpose in the overall architecture.
 
 ### 1. Kind Cluster Configuration (`cluster.yaml`)
 
-Creates a local Kubernetes cluster in Docker using Kind. Let see this block more closely
+Creates a local Kubernetes cluster in Docker using Kind hence you do not need this file for Azure deployment. Let's see this block more closely
 
 ```yaml
 - role: control-plane
@@ -138,7 +140,7 @@ spec:
   - port: 8000 # Service listens on port 8000
     targetPort: 8000 # Forwards traffic to container port 8000
   selector:
-    app: server-depl # Routes traffic to pods with label `app: server-depl` (see deployment in service.yaml) (If it wont match, it won't work)
+    app: server-depl # Routes traffic to pods with label `app: server-depl` (see deployment in service.yaml) (If it won't match, it won't work)
   type: ClusterIP # ClusterIP service implies that this service is only accessible within cluster
 ```
 
@@ -229,10 +231,12 @@ spec:
   - **`ReadWriteOnce`**: The volume can be mounted as read-write by a single node only. This is perfect for SQLite since it doesn't support concurrent writes from multiple processes.
 
 - **`storageClassName`**:
-  - **`"standard"`**: Uses the default storage class provided by Kind (or your Kubernetes cluster). In Kind, this typically maps to local storage on the Docker container. In cloud environments, this might be SSD, HDD, or other storage types depending on your cluster configuration.
+  - **`"standard"`**: Uses the default storage class provided by Kind (or your Kubernetes cluster). In Kind, this typically maps to local storage on the Docker container. In cloud environments, this might be SSD, HDD, or other storage types depending on your cluster configuration. We will use "managed" storage class provided by Azure (see in later section).
 
 - **`resources`**:
   - **`requests.storage: 1Gi`**: Requests 1 gigabyte of storage space. This is the minimum amount guaranteed to be available. The actual storage allocated might be larger depending on the storage class configuration.
+
+I can totally recommend this amazing Youtube [video](https://www.youtube.com/watch?v=yYQXKiiJzS8). 
 
 ### 5. Ingress Controller (`ingress.yaml`)
 
@@ -285,7 +289,7 @@ status:
 
 ---
 
-Time to do some real work, Run following command to create the Kind cluster:
+After having understanding of yaml files it is time to do some real work. Run the following command to create the Kind cluster:
 
 ```bash
 # Create Kubernetes local cluster
@@ -305,9 +309,9 @@ echo "127.0.0.1   todo.local" | sudo tee -a /etc/hosts
 
 Now we can deploy our application using `Kubernetes`.
 
-## Kubernetes delopyment with Kind (Local)
+## Kubernetes deployment with Kind (Local)
 
-Run following command:
+Run the following command:
 
 ```bash
 make deploy
@@ -327,13 +331,13 @@ To remove the application deployment.
 
 ## Helm Chart deployment
 
-First, make sure you have created cluster and loaded images into it (see previous section). Now simply run:
+First, make sure you have created the cluster and loaded images into it (see previous section). Now simply run:
 
 ```bash
 helm install simpei ./chart
 ```
 
-To uninstall chart
+To uninstall the chart
 
 ```bash
 helm uninstall simpei
@@ -341,23 +345,23 @@ helm uninstall simpei
 
 ## AKS (Azure) deployment
 
-Before we start, know that deploying on AKS is not **free**. However, once you create your account you get 200$ credits for free for one month. These 200$ are more than enough to deploy and play around. Once you done with your experiment, don't forget to delete all the resources (I will also write here how to do that).
+Before we start, know that deploying on AKS is not **free**. However, once you create your account you get 200$ credits for free for one month. These 200$ are more than enough to deploy and play around. Once you are done with your experiment, don't forget to delete all the resources (I will also write here how to do that).
 
 Create your Azure account [here](https://portal.azure.com).
 
-#### login in your Azure-cli
+#### Login to your Azure CLI
 
 ```bash
 az login # Enter 1 for subscription
 ```
 
- Create Azure Resource group
+Create Azure Resource group
 
 ```bash
 az group create --name todo-app --location westus
 ```
 
-You should get following JSOSN back
+You should get the following JSON back
 
 ```Json
 {
@@ -373,49 +377,49 @@ You should get following JSOSN back
 }
 ```
 
-Now lets AKS cluster (Following command will take a while )
+Now let's create the AKS cluster (the following command will take a while)
 
 ```bash
 az aks create --name todo-app-cluster --resource-group todo-app --generate-ssh-keys --node-vm-size Standard_B2s --node-count 2 --location westus
 ```
 
-If everything works,  then you should get a big JSON back!
+If everything works, then you should get a big JSON back!
 
-Now lets login to AKS cluster we just created!
+Now let's login to the AKS cluster we just created!
 
 ```bash
 az aks get-credentials --name todo-app-cluster --resource-group todo-app
 ```
 
-Output should look like
+The output should look like
 
 ```
 Merged "todo-app-cluster" as current context in /Users/your_user/.kube/config
 ```
 
-> Remember from now on you when you will run `Kubectl` commands,  you will be executing them on AKS not on your local Kind cluster
+> Remember from now on when you run `kubectl` commands, you will be executing them on AKS not on your local Kind cluster
 
-Now we have to install nginx as ingress controller, you can find installation command [here](https://kubernetes.github.io/ingress-nginx/deploy/#azure)
+Now we have to install nginx as the ingress controller, you can find the installation command [here](https://kubernetes.github.io/ingress-nginx/deploy/#azure)
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.13.1/deploy/static/provider/cloud/deploy.yaml
 ```
 
-Now in order to use our docker images by AKS cluster, we first need to create a container registry (ACR) and then push our images into it!
+Now in order to use our docker images by AKS cluster, we first need to create a Azure's container registry (ACR) and then push our images into it!
 
-Lets create ACR now
+Let's create ACR now
 ```bash
-az acr create --resource-group todo-app -n <this name is globally unique> --sku Basic
+az acr create --resource-group todo-app -n <acr_name, this name is globally unique> --sku Basic
 ```
 `-n` option is for your `ACR` name and it should be globally unique (so some name might already be taken)
 
 Now we have to login to container registry we just created. In order to login, first we need to get credentials
 
 ```bash
-az acr login -n maqboolaks --expose-token 
+az acr login -n <acr_name> --expose-token 
 ```
 
-Above command should give your a JSON
+The above command should give you a JSON
 ```json
 {
   "accessToken": "a huge string here",
@@ -425,25 +429,25 @@ Above command should give your a JSON
 }
 ```
 
-Once we have username andn accessToken then we are ready to login ACR from our local Docker.
+Once we have the username and accessToken, then we are ready to login to ACR from our local Docker.
 
 ```bash
-docker login <acr_url>.azurecr.io --username <username> --password <accessToken>
+docker login <acr_name>.azurecr.io --username <username> --password <accessToken>
 # output should be: Login Succeeded
 ```
 
-Now as I am using `Mac` and we gonna deploy on Azure linux images so we need to build Docker images for Linux and then push
+Now as I am using `Mac` and we are going to deploy on Azure Linux images, so we need to build Docker images for Linux and then push
 
 ```bash
 # Make sure you are at root project directory
-docker buildx build --platform linux/amd64 -t <acr_url>.azurecr.io/simpei-ui:0.1.0 --push ./simpei-ui 
-docker buildx build --platform linux/amd64 -t <acr_url>.azurecr.io/simpei-api:0.1.0 --push ./simpei
+docker buildx build --platform linux/amd64 -t <acr_name>.azurecr.io/simpei-ui:0.1.0 --push ./simpei-ui 
+docker buildx build --platform linux/amd64 -t <acr_name>.azurecr.io/simpei-api:0.1.0 --push ./simpei
 ```
 
-Now we can check if our images were pushed successfully or not with the folllowing command
+Now we can check if our images were pushed successfully or not with the following command
 
 ```bash
-az acr repository list --name <acr_url>
+az acr repository list --name <acr_name>
 # [
 #   "simpei-api",
 #   "simpei-ui"
@@ -453,18 +457,18 @@ az acr repository list --name <acr_url>
 Now as we have pushed our images to ACR, we need to connect ACR with Kubernetes so that Kubernetes can pull these images from ACR. For that we first need to create a `pull secret`
 
 ```bash
-kubectl create secret docker-registry <name_of_pull_secret> --docker-password '<accessToken>' --docker-server=<acr_url> --docker-username=<username>
+kubectl create secret docker-registry <name_of_pull_secret> --docker-password '<accessToken>' --docker-server=<acr_name> --docker-username=<username>
 # Output: secret/<name_of_pull_secret> created
 ```
 
-In the above command, `name_of_pull_secret` can be anything and `accessToken` & `username` should be same as we used in logging to ACR with docker.
-Now we need to attach this pull secret with AKS cluster's namespace. We do that by editing service account as every namespace has one of it. Run the following command
+In the above command, `name_of_pull_secret` can be anything and `accessToken` & `username` should be the same as we used when logging to ACR with docker.
+Now we need to attach this pull secret with the AKS cluster's namespace. We do that by editing the service account as every namespace has one. Run the following command
 
 ```bash
 kubectl edit sa default 
 ```
 
-Running above command will open up a file in vim editor. You need to add following section at the end of that.
+Running the above command will open up a file in the vim editor. You need to add the following section at the end of that.
 
 ```yaml
 imagePullSecrets:
@@ -472,41 +476,40 @@ imagePullSecrets:
 ```
 
 then finally save the file. We are almost ready to see our web alive :-)
-Now we just need external IP address of our nginx controller. Run
+Now we just need the external IP address of our nginx controller. Run
 
 ```bash
 kubectl get svc -n ingress-nginx
-# copy external IP address of ingress-nginx-controller
+# copy the external IP address of ingress-nginx-controller
 ```
 
-Then edit `chart/values-azure.yaml` file. Put your `ACR` name and `external IP address` there.
+Then edit the `chart/values-azure.yaml` file. Put your `ACR` name and `external IP address` there.
 Now run 
 
 ```bash
 helm upgrade --install <name_of_deployment> ./chart -f chart/values-azure.yaml
 ```
-
-wait for few seconds, and finally visit http://external-ip.nip.io 🔥
+`<name_of_deployment>` can be any name (think of it as a tag). Wait for a few seconds, and finally visit http://external-ip.nip.io 🔥
 You have done it.
 
 Now to uninstall the deployment run:
 
 ```bash
-helm uninstall aks
+helm uninstall <name_of_deployment>
 ```
 
 ## AKS cleanup
 
-Very important step otherwise Azure will continue billing your app. First, lets delete resource group you created:
+Very important step otherwise Azure will continue billing your app. First, let's delete the resource group you created:
 
 ```bash
 az group delete --name <resource group name>
 ```
 
-Now delete context from your local machine,
+Now delete the context from your local machine,
 
 ```bash
-kubectl config get-contexts # get name of the AKS cluster
+kubectl config get-contexts # get the name of the AKS cluster
 kubectl config delete-context --name <name of your cluster>
 ```
 
