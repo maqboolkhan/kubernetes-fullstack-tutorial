@@ -1,9 +1,9 @@
 image:
   ui:
-    name: <>.azurecr.io/simpei-ui:0.1.0
+    name: <acr name>.azurecr.io/simpei-ui:0.1.0
   server:
-    name: <>.azurecr.io/simpei-api:0.1.0
+    name: <acr name>.azurecr.io/simpei-api:0.1.0
 ingress:
-  host: <>.nip.io
+  host: <external ip>.nip.io
 persistence:
   storageClass: "managed"
